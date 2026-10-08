@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Лабораторная работа - Frontend v2.0</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin-bottom: 15px; }
+        input[type="text"], textarea { padding: 8px; width: 350px; }
+        button { padding: 8px 16px; cursor: pointer; margin-right: 5px; }
+        #status { margin-top: 10px; color: green; }
+        hr { margin: 25px 0; border: 0; border-top: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h2>Отправка и чтение данных (v2.0)</h2>
+    
+    <!-- Секция отправки (v1.0) -->
+    <div class="form-group">
+        <label for="inputText">Новая запись:</label><br>
+        <input type="text" id="inputText" placeholder="Введите сообщение...">
+    </div>
+    <button onclick="sendData()">Отправить</button>
+    <div id="status"></div>
+
+    <hr>
+
+    <!-- Секция получения (v2.0) -->
+    <div class="form-group">
+        <label for="outputData">Содержимое data.txt на сервере:</label><br>
+        <textarea id="outputData" rows="6" readonly placeholder="Здесь отобразится содержимое файла..."></textarea>
+    </div>
+    <button onclick="fetchData()">Получить данные с бэкенда</button>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/data';
+
+        async function sendData() {
+            const input = document.getElementById('inputText');
+            const status = document.getElementById('status');
+            const text = input.value;
+
+            if (!text.trim()) {
+                alert('Поле не должно быть пустым!');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (response.ok) {
+                    const result = await response.text();
+                    status.innerText = result;
+                    input.value = '';
+                } else {
+                    status.innerText = 'Ошибка сервера: ' + response.status;
+                }
+            } catch (err) {
+                status.innerText = 'Ошибка подключения к бэкенду';
+                console.error(err);
+            }
+        }
+
+        async function fetchData() {
+            const output = document.getElementById('outputData');
+            try {
+                const response = await fetch(API_URL, { method: 'GET' });
+                if (response.ok) {
+                    const data = await response.text();
+                    output.value = data;
+                } else {
+                    output.value = 'Ошибка при получении данных: ' + response.status;
+                }
+            } catch (err) {
+                output.value = 'Ошибка подключения к бэкенду';
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
